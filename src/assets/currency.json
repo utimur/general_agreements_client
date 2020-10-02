@@ -1,0 +1,177 @@
+[
+  {
+    "name": "RUB",
+    "code": "643",
+    "description": "Рублей"
+  },
+  {
+    "name": "USD",
+    "code": "840",
+    "description": "Долларов США"
+  },
+  {
+    "name": "EUR",
+    "code": "978",
+    "description": "Евро"
+  },
+  {
+    "name": "AMD",
+    "code": "051",
+    "description": "Армянских драмов"
+  },
+  {
+    "name": "AUD",
+    "code": "036",
+    "description": "Австралийских долларов"
+  },
+  {
+    "name": "AZN",
+    "code": "944",
+    "description": "Азербайджанских манат"
+  },
+  {
+    "name": "BGN",
+    "code": "975",
+    "description": "Болгарских левов"
+  },
+  {
+    "name": "BRL",
+    "code": "986",
+    "description": "Бразильских реалов"
+  },
+  {
+    "name": "BYN",
+    "code": "933",
+    "description": "Белорусских рублей"
+  },
+  {
+    "name": "CAD",
+    "code": "124",
+    "description": "Канадских долларов"
+  },
+  {
+    "name": "CHF",
+    "code": "756",
+    "description": "Швейцарских франков"
+  },
+  {
+    "name": "CNY",
+    "code": "156",
+    "description": "Китайских юаней"
+  },
+  {
+    "name": "CZK",
+    "code": "203",
+    "description": "Чешских крон"
+  },
+  {
+    "name": "DKK",
+    "code": "208",
+    "description": "Датских крон"
+  },
+  {
+    "name": "GBP",
+    "code": "826",
+    "description": "Фунтов стерлингов Соединенного королевства"
+  },
+  {
+    "name": "HKD",
+    "code": "344",
+    "description": "Гонконгских долларов"
+  },
+  {
+    "name": "HUF",
+    "code": "348",
+    "description": "Венгерских форинтов"
+  },
+  {
+    "name": "INR",
+    "code": "356",
+    "description": "Индийских рупий"
+  },
+  {
+    "name": "JPY",
+    "code": "392",
+    "description": "Японских иен"
+  },
+  {
+    "name": "KGS",
+    "code": "417",
+    "description": "Киргизских сомов"
+  },
+  {
+    "name": "KRW",
+    "code": "410",
+    "description": "Вон Республики Корея"
+  },
+  {
+    "name": "KZT",
+    "code": "398",
+    "description": "Казахстанских тенге"
+  },
+  {
+    "name": "MDL",
+    "code": "498",
+    "description": "Молдавских леев"
+  },
+  {
+    "name": "NOK",
+    "code": "578",
+    "description": "Норвежских крон"
+  },
+  {
+    "name": "PLN",
+    "code": "985",
+    "description": "Польских злотых"
+  },
+  {
+    "name": "RON",
+    "code": "946",
+    "description": "Румынский лей"
+  },
+  {
+    "name": "SEK",
+    "code": "752",
+    "description": "Шведских крон"
+  },
+  {
+    "name": "SGD",
+    "code": "702",
+    "description": "Сингапурских долларов"
+  },
+  {
+    "name": "TJS",
+    "code": "972",
+    "description": "Таджикских сомони"
+  },
+  {
+    "name": "TMT",
+    "code": "934",
+    "description": "Новых туркменских манат"
+  },
+  {
+    "name": "TRY",
+    "code": "949",
+    "description": "Турецких лир"
+  },
+  {
+    "name": "UAH",
+    "code": "980",
+    "description": "Украинских гривен"
+  },
+  {
+    "name": "UZS",
+    "code": "860",
+    "description": "Узбекских сумов"
+  },
+  {
+    "name": "XDR",
+    "code": "960",
+    "description": "СДР (специальных прав заимствования)"
+  },
+  {
+    "name": "ZAR",
+    "code": "710",
+    "description": "Южноафриканских рэндов"
+  }
+]

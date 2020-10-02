@@ -1,0 +1,10 @@
+[
+  {
+    "endpoint_name": "parties_partyHost",
+    "address": "http://podev.skpari.local/parties-rest/rest/"
+  },
+  {
+    "endpoint_name": "registriesSocket",
+    "address": "ws://eltransinternal/cargosocket/registry/"
+  }
+]

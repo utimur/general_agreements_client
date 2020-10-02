@@ -1,0 +1,59 @@
+{
+  "type": "CargoTerms",
+  "productCode": "CARGO",
+  "kindOfInsurance": {},
+  "coverageTerritory": {},
+  "limitations": [],
+  "printedRules": null,
+  "conditionOfSupply": "",
+  "beneficiary": {
+    "contragent": true
+  },
+  "hideBeneficiary": false,
+  "insuredSum": {},
+  "premium": {},
+  "kindOfService": "пример",
+  "deductible": {
+    "type": "AbsoluteDeductible",
+    "kind": "пример",
+    "value": {}
+  },
+  "cargo": {
+    "name": "",
+    "number": "",
+    "deliveryNumber": "",
+    "quantity": 0,
+    "packing": {},
+    "weight": {
+      "value": 0,
+      "unit": "Килограмм"
+    },
+    "volume": 0,
+    "kind": "пример",
+    "insurable": {},
+    "documents": [],
+    "shipper": {
+      "id": null,
+      "contragent": true
+    },
+    "consignee": {
+      "id": null,
+      "contragent": true
+    },
+    "underSanctionsReason": null,
+    "danger": true,
+    "fragile": true,
+    "temperatureControl": true,
+    "underSanctions": false,
+    "inSafety": true,
+    "used": true
+  },
+  "route": {
+    "segments": []
+  },
+  "personalDataProcessingConsent": true,
+  "risksCoverage": {},
+  "risksWithDeductible": [],
+  "liabilityBegins": {},
+  "liabilityEnds": {}
+}
