@@ -131,13 +131,21 @@
                  * Инициируется когда пользователь
                  * осуществил выбор генерального договора
                  */
-                this.$emit("select");
-                this.$router.push({
-                    name: route_names.GENERAL_AGREEMENT_DETAIL,
-                    params: {
-                        "id": id
-                    }
-                });
+                if (this.$route.name === route_names.GENERAL_AGREEMENT_DETAIL) {
+                    this.$router.push({
+                        name: route_names.ADDITIONAL_AGREEMENT_DETAIL,
+                        params: {
+                            "id": id
+                        }
+                    });
+                } else {
+                    this.$router.push({
+                        name: route_names.GENERAL_AGREEMENT_DETAIL,
+                        params: {
+                            "id": id
+                        }
+                    });
+                }
             },
             format_date
         },

@@ -1,6 +1,6 @@
 import {route_names} from "../utils/consts";
 
-let Agreements = () => import("../views/Agreements");
+let GeneralAgreements = () => import("../views/GeneralAgreements");
 
 export default [
     {
@@ -13,33 +13,33 @@ export default [
                 path: "generalAgreement",
                 name: route_names.GENERAL_AGREEMENT,
                 props: true,
-                component: Agreements,
+                component: GeneralAgreements,
                 children: [
                     {
                         path: "create",
                         name: route_names.GENERAL_AGREEMENT_CREATE,
-                        component: Agreements
+                        component: GeneralAgreements
                     },
                     {
                         path: ":id",
                         name: route_names.GENERAL_AGREEMENT_DETAIL,
-                        component: Agreements
+                        component: GeneralAgreements
                     },
                     {
                         path: "additionalAgreement",
                         name: route_names.ADDITIONAL_AGREEMENT,
                         props: true,
-                        component: Agreements,
+                        component: GeneralAgreements,
                         children: [
                             {
                                 path: "create",
                                 name: route_names.ADDITIONAL_AGREEMENT_CREATE,
-                                component: Agreements
+                                component: GeneralAgreements
                             },
                             {
                                 path: ":id",
-                                name: route_names.ADDITIONAL_AGREEMENT_CREATE,
-                                component: Agreements
+                                name: route_names.ADDITIONAL_AGREEMENT_DETAIL,
+                                component: GeneralAgreements
                             },
                         ]
                     }
