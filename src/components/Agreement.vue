@@ -1,5 +1,5 @@
 <template>
-    <v-layout justify-space-around>
+    <v-layout justify-space-around class="mb-10">
         <v-flex xs12 md8 lg6 xl4>
             <v-card>
                 <v-form ref="form" lazy-validation v-model="form_valid">
@@ -16,7 +16,7 @@
                                         v-if="!is_canceled"
                                         color="error"
                                         small
-                                        @click="cancel_agreement"
+                                        @click="open_cancel_agreement_modal"
                                     >
                                         Расторгнуть
                                     </v-btn>
@@ -85,7 +85,6 @@
                         </v-layout>
                         <v-layout column>
                             <v-checkbox
-                                :disabled="!readonly && !agreement.till"
                                 :readonly="readonly"
                                 @change="check_auto_renew"
                                 v-model="agreement.autoRenew"
@@ -149,79 +148,129 @@
                                     <v-expansion-panel-header class="font-weight-bold">{{ additional_panel_header }}</v-expansion-panel-header>
                                     <v-expansion-panel-content v-if="additional_agreements.length">
                                         <general-agreements-table
+                                            :is_general="false"
                                             :general_agreements="additional_agreements"
                                         />
                                     </v-expansion-panel-content>
                                 </v-expansion-panel>
                             </v-expansion-panels>
                         </template>
-                        <v-row v-if="is_new" class="pa-3">
-                            <v-btn color="error">Отмена</v-btn>
-                            <v-btn color="error">Сохранить</v-btn>
-                        </v-row>
                     </v-container>
                 </v-form>
-                <v-snackbar
-                    color="primary"
-                    v-if="is_new"
-                >
-                    Создание генерального договора
-                    <template v-slot:action>
-                        <v-btn
-                            small
-                            dark
-                            @click="cancel_editing"
-                            color="error"
-                            class="snackbar-btn mr-1"
-                        >
-                            Отмена
-                        </v-btn>
-                        <v-btn
-                            small
-                            dark
-                            @click="save"
-                            :disabled="!form_valid"
-                            color="green"
-                            class="snackbar-btn ml-1"
-                        >
-                            Сохранить
-                        </v-btn>
-                    </template>
-                </v-snackbar>
-                <v-snackbar
-                    color="primary"
-                    :value="snackbar_editing"
-                >
-                    Редактировать текущий договор
-                    <template v-slot:action>
-                        <v-btn
-                            small
-                            dark
-                            @click="cancel_editing"
-                            color="error"
-                            class="snackbar-btn mr-1"
-                        >
-                            Отмена
-                        </v-btn>
-                        <v-btn
-                            small
-                            dark
-                            @click="save"
-                            :disabled="!form_valid"
-                            color="green"
-                            class="snackbar-btn ml-1"
-                        >
-                            Сохранить
-                        </v-btn>
-                    </template>
-                </v-snackbar>
+
             </v-card>
         </v-flex>
+        <template v-if="!agreement.canceled">
+            <v-snackbar
+                color="primary"
+                :value="snackbar_creating"
+                :timeout="-1"
+                v-if="snackbar_creating"
+            >
+                Создание договора
+                <template v-slot:action>
+                    <v-btn
+                        small
+                        dark
+                        @click="$router.back()"
+                        color="error"
+                        class="snackbar-btn mr-1"
+                    >
+                        Отмена
+                    </v-btn>
+                    <v-btn
+                        small
+                        dark
+                        @click="save"
+                        :disabled="!form_valid"
+                        color="green"
+                        class="snackbar-btn ml-1"
+                    >
+                        Создать
+                    </v-btn>
+                </template>
+            </v-snackbar>
+            <v-snackbar
+                color="primary"
+                :value="snackbar_editing"
+                v-if="snackbar_editing"
+                :timeout="-1"
+            >
+                Редактировать текущий договор
+                <template v-slot:action>
+                    <v-btn
+                        small
+                        dark
+                        @click="editing"
+                        color="green"
+                    >
+                        Редактировать
+                    </v-btn>
+                </template>
+            </v-snackbar>
+            <v-snackbar
+                color="primary"
+                :value="snackbar_saving"
+                :timeout="-1"
+                v-if="snackbar_saving"
+            >
+                Обновить договор
+                <template v-slot:action>
+                    <v-btn
+                        small
+                        dark
+                        @click="cancel_editing"
+                        color="error"
+                        class="snackbar-btn mr-1"
+                    >
+                        Отмена
+                    </v-btn>
+                    <v-btn
+                        small
+                        dark
+                        @click="save"
+                        :disabled="!form_valid"
+                        color="green"
+                        class="snackbar-btn ml-1"
+                    >
+                        Сохранить
+                    </v-btn>
+                </template>
+            </v-snackbar>
+        </template>
+        <v-dialog
+            v-model="cancel_agreement_modal"
+            max-width="400px"
+        >
+            <v-card>
+                <v-card-title class="headline">Предупреждение</v-card-title>
+                <v-card-text>Вы уверены, что хотите расторгнуть договор?</v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        color="red darken-1"
+                        text
+                        @click="cancel_agreement_modal = false"
+                    >Отмена</v-btn>
+                    <v-btn
+                        color="teal darken-1"
+                        text
+                        @click="cancel_agreement"
+                    >
+                        Расторгнуть
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+        <LoadingDialog
+            :loading-dialog="loading_dialog"
+            :title="loading_label"
+            :value="loading_dialog_value"
+        />
     </v-layout>
 </template>
 
 <script>
-import Kinds from "../assets/selections"
 import DictionarySelection from "../components/basic/DictionarySelection";
 import LoadingDialog from "../components/basic/LoadingDialog";
 import {route_names} from "../utils/consts";
@@ -229,6 +278,7 @@ import {load_parties_detail} from "../utils/load_parties_detail";
 import DateInput from "../components/basic/DateInput";
 import {format_date} from "../utils/date_util";
 import rules from "../utils/rules";
+import Kinds from "../assets/selections"
 import GeneralAgreementsTable from "../components/GeneralAgreementsTable";
 import HolderInput from "../components/basic/HolderInput";
 
@@ -249,7 +299,6 @@ export default {
     data() {
         return {
             form_valid: true,
-            additional_agreement: {kindOfInsuranceList: []},
             additional_agreements:[{id: 2, number: 222, since: '2020-04-05', till: '2020-04-05', signed: '2020-04-05', canceled: null, autoRenew: false}],
             agreement: {kindOfInsuranceList: []},
             copy_agreement: null,
@@ -266,6 +315,13 @@ export default {
             rules: rules,
             kinds: Kinds,
             snackbar_editing: false,
+            snackbar_saving: false,
+            snackbar_creating: false,
+            loading: false,
+            loading_dialog: false,
+            loading_dialog_value:0,
+            loading_label: null,
+            cancel_agreement_modal: false,
         }
     },
     computed: {
@@ -284,7 +340,7 @@ export default {
         },
 
         additional_title() {
-            if (this.additional_agreement.id == null)
+            if (this.agreement.id == null)
                 return "Создание дополнительного договора";
             else
                 return "Дополнительный договор №" + this.agreement.number;
@@ -317,15 +373,14 @@ export default {
                 this.get_agreement(this.$route.params.id);
             }
         }
+        this.route_handler(this.$route)
     },
     watch: {
         "$route.params.id"() {
-            if (this.is_general) {
-                if (this.$route.params.id) {
-                    this.last_loaded_file_name = "";
-                    this.reset_input_form()
-                    this.get_agreement(this.$route.params.id);
-                }
+            if (this.$route.params.id) {
+                this.last_loaded_file_name = "";
+                this.reset_input_form()
+                this.get_agreement(this.$route.params.id);
             }
         },
         "$route"(to) {
@@ -334,6 +389,9 @@ export default {
 
     },
     methods: {
+        open_cancel_agreement_modal() {
+              this.cancel_agreement_modal = true
+        },
         cancel_agreement() {
             this.$cargo_adminHost.get(`/generalAgreement/cancel/${this.agreement.id}`)
                 .catch(error => {
@@ -343,7 +401,7 @@ export default {
                     if (res) {
                         this.agreement.canceled = true;
                     }
-                });
+                }).finally(() => this.cancel_agreement_modal = false);
         },
         check_auto_renew(new_value) {
             if (!new_value) {
@@ -444,13 +502,6 @@ export default {
                 });
         },
 
-        show_alert() {
-            this.search_alert = true;
-            setTimeout(() => {
-                this.search_alert = false;
-            }, 3000);
-        },
-
         get_holder_ids(agreements) {
             let ids = [];
             if (agreements)
@@ -485,18 +536,22 @@ export default {
             if (!this.form_validate())
                 return;
             this.show_loading_dialog();
-
-            this.$cargo_adminHost.post("/generalAgreement/", this.agreement)
+            const method = this.agreement.id ? 'put' : 'post'
+            this.$cargo_adminHost[method]("/generalAgreement/", this.agreement)
                 .then(response => response.data)
                 .then(data => {
                     this.select(data);
                     this.readonly = true;
                     this.show_success_alert("Генеральный договор успешно сохранен");
+                    this.back_to_list()
                 })
                 .catch(error => {
                     this.error_handler(error);
                 })
                 .finally(() => this.loading_dialog = false);
+            if (!this.agreement.id) {
+                this.$router.back()
+            }
         },
         select(id) {
             this.resetScanFileProps();
@@ -507,7 +562,7 @@ export default {
                 }
             });
         },
-        get_agreement(id) {
+        async get_agreement(id) {
             this.show_loading_dialog("Загрузка");
             this.$cargo_adminHost.get("/generalAgreement/" + id)
                 .then(response => response.data)
@@ -515,18 +570,29 @@ export default {
                     this.agreement = data;
                     this.set_last_scan_file_name(id);
                     this.readonly = true;
+                    this.$store.commit('cargo/set_current_general_agreement', data)
                 })
                 .catch(error => {
                     this.error_handler(error);
                 })
                 .finally(() => this.loading_dialog = false);
         },
+        editing() {
+            this.readonly = false
+            this.snackbar_editing = false
+            this.snackbar_saving = true
+        },
         cancel_editing() {
-            if (this.cancel_redirect_params)
-                this.cancel_redirect();
-            else
-                this.back_to_list();
-            this.readonly = true;
+            // if (this.cancel_redirect_params)
+            //     this.cancel_redirect();
+            // else
+            //     this.back_to_list();
+            // this.readonly = true;
+            this.readonly = true
+            this.get_agreement(this.$route.params.id).then(() => {
+                this.snackbar_editing = true
+                this.snackbar_saving = false
+            })
         },
         cancel_redirect() {
             this.$router.push({
@@ -552,15 +618,27 @@ export default {
             this.loading_dialog = true;
         },
         route_handler(route) {
-            if(route_names.GENERAL_AGREEMENT_CREATE || route_names.ADDITIONAL_AGREEMENT_CREATE) {
+            if(route.name === route_names.ADDITIONAL_AGREEMENT_CREATE && !this.$store.getters["cargo/get_current_general_agreement_id"]) {
+                this.$router.push({
+                    name: route_names.GENERAL_AGREEMENT
+                })
+            }
+            if(route.name === route_names.GENERAL_AGREEMENT_CREATE || route.name === route_names.ADDITIONAL_AGREEMENT_CREATE) {
                 if (this.$refs.form)
                     this.$refs.form.resetValidation();
                 this.readonly = false
+                this.snackbar_creating = true
+                this.snackbar_saving = false
+                this.snackbar_editing = false
                 this.agreement = this.agreement = {
                     holderId: this.holder_id,
                     kindOfInsuranceList: []
                 };
                 this.reset_input_form()
+            }
+            if (route.name === route_names.ADDITIONAL_AGREEMENT_DETAIL ||  route.name === route_names.GENERAL_AGREEMENT_DETAIL) {
+                this.snackbar_saving = false
+                this.snackbar_editing = true
             }
         },
         format_date

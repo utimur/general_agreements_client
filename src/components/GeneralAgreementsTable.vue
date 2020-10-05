@@ -1,58 +1,85 @@
 <template>
-    <v-data-table
-        :headers="headers"
-        no-data-text="Список генеральных договоров пуст"
-        :footer-props="{
+    <v-container>
+        <v-data-table
+            :headers="headers"
+            no-data-text="Список генеральных договоров пуст"
+            :footer-props="{
           itemsPerPageText:'',
           itemsPerPageOptions:[5,10,25,50,{text:'Все', value: -1}],
         }"
-        :items-per-page="items_per_page"
-        :items="general_agreements"
-        locale="ru-RU"
-        class="elevation-1 tr-pointer">
-        <template v-slot:item="{ item}">
-            <tr @click="select(item.id)">
-                <td>
+            :items-per-page="items_per_page"
+            :items="general_agreements"
+            locale="ru-RU"
+            class="elevation-1 tr-pointer">
+            <template v-slot:item="{ item}">
+                <tr @click="select(item.id)">
+                    <td>
                     <span style="white-space: nowrap">
                         {{item.number}}
                     </span>
-                </td>
-                <td v-if="!hide_holder_td">{{ get_holder_name(item.holderId) }}</td>
-                <td>{{ format_date(item.signed)}}</td>
-                <td>
-                    {{ format_date(item.since)}} <br/> {{format_date(item.till)}}
-                </td>
-                <td class="text-xs-right">
-                    <v-tooltip top>
-                        <template v-slot:activator="{ on }">
-                            <v-btn
-                                icon
-                                class="mr-2"
-                                @click="select(item.id)"
-                                v-on="on">
-                                <v-icon color="primary">
-                                    remove_red_eye
-                                </v-icon>
-                            </v-btn>
-                        </template>
-                        <span>Подробная информация</span>
-                    </v-tooltip>
-                </td>
-            </tr>
-        </template>
-        <template v-slot:no-data>
-            <v-layout wrap pt-2 px-2 v-if="alert">
-                <v-flex sm12>
-                    <v-alert text color="warning" icon="info">
-                        Не найдено
-                    </v-alert>
-                </v-flex>
-            </v-layout>
-            <template v-else>
-                Список пуст
+                    </td>
+                    <td v-if="!hide_holder_td">{{ get_holder_name(item.holderId) }}</td>
+                    <td>{{ format_date(item.signed)}}</td>
+                    <td>
+                        {{ format_date(item.since)}} <br/> {{format_date(item.till)}}
+                    </td>
+                    <td class="text-xs-right">
+                        <v-tooltip top>
+                            <template v-slot:activator="{ on }">
+                                <v-btn
+                                    icon
+                                    class="mr-2"
+                                    @click.stop="() => open_delete_modal(item)"
+                                    v-on="on">
+                                    <v-icon color="primary">
+                                        delete
+                                    </v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Удалить договор</span>
+                        </v-tooltip>
+                    </td>
+                </tr>
             </template>
-        </template>
-    </v-data-table>
+            <template v-slot:no-data>
+                <v-layout wrap pt-2 px-2 v-if="alert">
+                    <v-flex sm12>
+                        <v-alert text color="warning" icon="info">
+                            Не найдено
+                        </v-alert>
+                    </v-flex>
+                </v-layout>
+                <template v-else>
+                    Список пуст
+                </template>
+            </template>
+
+        </v-data-table>
+        <v-dialog
+            v-model="delete_modal"
+            max-width="400px"
+        >
+            <v-card>
+                <v-card-title class="headline">Предупреждение</v-card-title>
+                <v-card-text>Вы уверены, что хотите удалить договор?</v-card-text>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                        color="red darken-1"
+                        text
+                        @click="delete_modal = false"
+                    >Отмена</v-btn>
+                    <v-btn
+                        color="teal darken-1"
+                        text
+                        @click="delete_agreement"
+                    >
+                        Удалить
+                    </v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
+    </v-container>
 </template>
 
 <script>
@@ -64,7 +91,10 @@
         name: "GeneralAgreementsTable",
         components: {},
         data() {
-            return {}
+            return {
+                delete_modal: false,
+                current_agreement: null,
+            }
         },
         props: {
             /**
@@ -94,9 +124,14 @@
              */
             items_per_page: {
                 default: 25
+            },
+
+            is_general: {
+                default: true,
             }
         },
         computed: {
+
             parties_detail() {
                 return this.$store.getters["cargo/get_parties_detail"];
             },
@@ -118,6 +153,10 @@
         created() {
         },
         methods: {
+            open_delete_modal(item) {
+                this.current_agreement = item
+                this.delete_modal = true
+            },
             get_holder_name(holder_id) {
                 for (let i = 0; i < this.parties_detail.length; i++) {
                     let party = this.parties_detail[i];
@@ -125,6 +164,12 @@
                         return party.name;
                 }
                 return "";
+            },
+            delete_agreement() {
+                this.$cargo_adminHost.delete('url',)
+                    .then(() => {
+                        console.log('deleted')
+                    }).catch((e) => console.log(e))
             },
             select(id) {
                 /**

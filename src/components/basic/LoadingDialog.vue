@@ -8,49 +8,50 @@
                     :indeterminate="!value"
                     color="white"
                     class="mb-0"
-                />
+                >
+                </v-progress-linear>
             </v-card-text>
         </v-card>
     </v-dialog>
 </template>
 
 <script>
-    /**
-     * Диалог с progress-linear
-     */
+/**
+ * Диалог с progress-linear
+ */
 
-    export default {
-        name: "LoadingDialog",
-        data() {
-            return {
+export default {
+    name: "LoadingDialog",
+    data() {
+        return {
 
-            }
+        }
+    },
+    computed: {
+    },
+    methods: {
+    },
+    props: {
+        /**
+         * Отображать ли диалоговое окно
+         */
+        loadingDialog: {
+            type: Boolean,
+            default: false
         },
-        computed: {
+        title: {
+            type: String,
+            default: "Обрабатывается"
         },
-        methods: {
-        },
-        props: {
-            /**
-             * Отображать ли диалоговое окно
-             */
-            loadingDialog: {
-                type: Boolean,
-                default: false
-            },
-            title: {
-                type: String,
-                default: "Обрабатывается"
-            },
-            /**
-             * Процентное значение для текущего прогресса
-             */
-            value: {
-                type: Number,
-                default: 0
-            }
-        },
-        watch: {},
-        created() {}
-    };
+        /**
+         * Процентное значение для текущего прогресса
+         */
+        value: {
+            type: Number,
+            default: 0
+        }
+    },
+    watch: {},
+    created() {}
+};
 </script>

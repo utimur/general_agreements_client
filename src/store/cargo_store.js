@@ -13,6 +13,8 @@ let state = {
     copy_value: '',
     copy_agreement: null,
     registries_socket_address: null,
+    current_general_agreement_id: null,
+    current_general_agreement: null,
 };
 
 let getters = {
@@ -22,6 +24,8 @@ let getters = {
     get_employees_detail: state => state.employees_detail,
     get_parties_detail: state => state.parties_detail,
     get_registries_socket_address: state => state.registries_socket_address,
+    get_current_general_agreement_id: state => state.current_general_agreement_id,
+    get_current_general_agreement: state => state.current_general_agreement,
 };
 
 let actions = {};
@@ -45,6 +49,12 @@ let mutations = {
         if(!state.registries_socket_address) {
             state.registries_socket_address = value;
         }
+    },
+    set_current_general_agreement_id(state, value) {
+        state.current_general_agreement_id = value
+    },
+    set_current_general_agreement(state, value) {
+        state.current_general_agreement = value
     }
 };
 

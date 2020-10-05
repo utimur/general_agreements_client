@@ -115,29 +115,12 @@ const ERROR_ALERT_TYPE = "error";
 const WARNING_ALERT_TYPE = "warning";
 const SUCCESS_ALERT_TYPE = "success";
 
-export {
-    route_names,
-    excelTypes,
-    printTypes,
-    statuses,
-    status_types,
-    approve_kinds,
-    request_kinds,
-    common_consts,
-    redirect,
-    request_types,
-    terms_types,
-    product_codes,
-    history_types,
-    service_path,
-    error_codes,
-    alert_types,
-    risk_types,
-    deductible_kinds,
-    approval_statuses,
-    party_roles,
-    kinds_of_insurance,
-}
+const SEARCH_BY_HOLDER = 'SEARCH_BY_HOLDER'
+const SEARCH_BY_DATE = 'SEARCH_BY_DATE'
+const SEARCH_BY_NUMBER = 'SEARCH_BY_NUMBER'
+const SEARCH_BY_KIND = 'SEARCH_BY_KIND'
+
+
 
 let alert_types = {
     SUCCESS: SUCCESS_ALERT_TYPE,
@@ -298,3 +281,34 @@ let redirect = {
     GENERAL_AGREEMENT: GENERAL_AGREEMENT
 };
 
+let search_names = {
+    holder: SEARCH_BY_HOLDER,
+    number: SEARCH_BY_NUMBER,
+    date: SEARCH_BY_DATE,
+    kind: SEARCH_BY_KIND,
+}
+
+export {
+    route_names,
+    excelTypes,
+    printTypes,
+    statuses,
+    status_types,
+    approve_kinds,
+    request_kinds,
+    common_consts,
+    redirect,
+    request_types,
+    terms_types,
+    product_codes,
+    history_types,
+    service_path,
+    error_codes,
+    alert_types,
+    risk_types,
+    deductible_kinds,
+    approval_statuses,
+    party_roles,
+    kinds_of_insurance,
+    search_names
+}

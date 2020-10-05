@@ -20,17 +20,36 @@
                                     </v-flex>
                                 </v-layout>
                                 <v-layout wrap justify-space-around pb-2>
-                                    <v-flex>
-                                        <holder-input
-                                            :only_active="false"
-                                            clearable
-                                            hide-details
-                                            :readonly="false"
-                                            v-model="filter.holderId"
-                                            @input="search"
-                                            label="Поиск по страхователю"
-                                        />
-                                    </v-flex>
+                                    <v-row class="d-flex align-center">
+                                        <v-col>
+                                            <holder-input
+                                                :only_active="false"
+                                                clearable
+                                                hide-details
+                                                :readonly="false"
+                                                v-model="filter.holderId"
+                                                @input="search_by_holder"
+                                                label="Поиск по страхователю"
+                                            />
+                                        </v-col>
+                                        <v-col cols="1">
+                                            <v-tooltip bottom >
+                                                <template v-slot:activator="{ on, attrs }">
+                                                    <v-icon
+                                                        color="primary"
+                                                        dark
+                                                        large
+                                                        v-bind="attrs"
+                                                        v-on="on"
+                                                        @click="filter_dialog_visible = true"
+                                                    >
+                                                        filter_list
+                                                    </v-icon>
+                                                </template>
+                                                <span>Расширенный поиск</span>
+                                            </v-tooltip>
+                                        </v-col>
+                                    </v-row>
                                 </v-layout>
                                 <v-layout
                                     flex-row
@@ -136,7 +155,8 @@
         <v-speed-dial
             class="dial"
             :top="true"
-            v-if="is_showing_general_agreement && !is_creating_general_agreement"
+            v-if="(is_showing_general_agreement && !is_creating_general_agreement)
+            && ($store.getters['cargo/get_current_general_agreement'] && !$store.getters['cargo/get_current_general_agreement'].canceled)"
             right
             fixed
         >
@@ -160,12 +180,14 @@
                 </v-tooltip>
             </template>
         </v-speed-dial>
+        <filter-dialog
+            :value="filter_dialog_visible"
+            @hide_filter_dialog="filter_dialog_visible = false"
+        />
         <LoadingDialog
             :loading-dialog="loading_dialog"
             :title="loading_label"
-            :value="loading_dialog_value"
         />
-
     </v-container>
 </template>
 
@@ -173,7 +195,7 @@
 import Kinds from "../assets/selections"
 import DictionarySelection from "../components/basic/DictionarySelection";
 import LoadingDialog from "../components/basic/LoadingDialog";
-import {route_names} from "../utils/consts";
+import {route_names, search_names} from "../utils/consts";
 import {load_parties_detail} from "../utils/load_parties_detail";
 import DateInput from "../components/basic/DateInput";
 import {format_date} from "../utils/date_util";
@@ -181,6 +203,7 @@ import rules from "../utils/rules";
 import GeneralAgreementsTable from "../components/GeneralAgreementsTable";
 import HolderInput from "../components/basic/HolderInput";
 import Agreement from "../components/Agreement";
+import FilterDialog from "../components/FilterDialog";
 
 export default {
     name: "GeneralAgreements",
@@ -190,12 +213,15 @@ export default {
         LoadingDialog,
         DateInput,
         DictionarySelection,
-        Agreement
+        Agreement,
+        FilterDialog
     },
     data() {
         return {
+            filter_dialog_visible: false,
             loading: false,
             loading_dialog: false,
+            loading_label: null,
             search_alert: false,
             step: 1,
             general_agreements: [],
@@ -214,17 +240,15 @@ export default {
                 {text: "", value: "actions", align: "right", sortable: false},
             ],
             rules: rules,
-            loading_label: null,
             kinds: Kinds,
+            search_names: search_names,
+            search_type: search_names.holder,
+            search_since: null,
+            search_till: null,
+            search_kind: null,
         }
     },
     computed: {
-        is_new() {
-            return !this.general_agreement.id;
-        },
-        is_canceled() {
-            return this.general_agreement.canceled;
-        },
         is_searching() {
             return this.step === 1;
         },
@@ -253,6 +277,9 @@ export default {
         },
         general_agreement_status(newVal) {
             this.filter_general_agreements_by_status(newVal);
+        },
+        filter_dialog_visible() {
+            console.log(this.filter_dialog_visible)
         }
     },
     props: {
@@ -279,7 +306,7 @@ export default {
                 this.search_alert = false;
             }, 3000);
         },
-        search() {
+        search_by_holder() {
             this.loading = true;
             this.$cargo_adminHost.post("/generalAgreement/find", this.filter)
                 .then(response => {
@@ -327,6 +354,7 @@ export default {
         },
         create_additional_agreement() {
             this.resetScanFileProps();
+            this.$store.commit('cargo/set_current_general_agreement_id', this.$route.params.id)
             this.$router.push({
                 name: route_names.ADDITIONAL_AGREEMENT_CREATE
             });
@@ -362,7 +390,7 @@ export default {
             switch (route.name) {
                 case route_names.GENERAL_AGREEMENT:
                     this.step = 1;
-                    this.search();
+                    this.search_by_holder();
                     break
                 case route_names.GENERAL_AGREEMENT_DETAIL :
                     this.step = 2
