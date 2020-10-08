@@ -130,7 +130,12 @@ let alert_types = {
 
 let kinds_of_insurance = {
     CARGO_32: CARGO_32_KIND_OF_INSURANCE,
-    LIABILITY: LIABILITY_KIND_OF_INSURANCE
+    LIABILITY: LIABILITY_KIND_OF_INSURANCE,
+    "15": "Страхование ответственности перевозчиков [15]",
+    "32": "Страхование ответственности экспедиторов [32]",
+    "112": "Страхование грузов [112]",
+    "07": "Страхование грузов [07]",
+    "0701": "Страхование имущества [0701]",
 };
 
 let approval_statuses = {
@@ -287,6 +292,7 @@ let search_names = {
     date: SEARCH_BY_DATE,
     kind: SEARCH_BY_KIND,
 }
+
 
 export {
     route_names,

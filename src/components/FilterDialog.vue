@@ -5,7 +5,7 @@
                 <v-row class="d-flex justify-center"><h2 class="primaryDark--text mb-3">Расширенный поиск генеральных договоров</h2></v-row>
                 <holder-input
                     hide-details
-                    v-model="criteria.holderId"
+                    v-model="criteria.partyId"
                 />
                 <v-row>
                     <v-col cols="6">
@@ -41,15 +41,15 @@
                                             <date-input
                                                 hide-details
                                                 label="От"
-                                                v-model="criteria.startSigned"
+                                                v-model="criteria.startApplied"
                                             />
                                         </v-col>
                                         <v-col cols="6">
                                             <date-input
                                                 hide-details
                                                 label="До"
-                                                :min="criteria.startSigned"
-                                                v-model="criteria.endSigned"
+                                                :min="criteria.startApplied"
+                                                v-model="criteria.endApplied"
                                             />
                                         </v-col>
                                     </v-row>
@@ -135,11 +135,11 @@ export default {
         rules: rules,
         kinds: Kinds,
         criteria: {
-            holderId: {},
-            number: '',
+            partyId: null,
+            number: null,
             kindOfInsuranceList: [],
-            startSigned: null,
-            endSigned: null,
+            startApplied: null,
+            endApplied: null,
             startSince: null,
             endSince: null,
             startTill: null,
@@ -149,11 +149,11 @@ export default {
     computed: {
         default_criteria() {
            return {
-               holderId: null,
-               number: '',
+               partyId: null,
+               number: null,
                kindOfInsuranceList: [],
-               startSigned: null,
-               endSigned: null,
+               startApplied: null,
+               endApplied: null,
                startSince: null,
                endSince: null,
                startTill: null,
@@ -169,7 +169,7 @@ export default {
             this.$emit('hide_filter_dialog', false)
         },
         search() {
-            console.log(this.criteria)
+            this.$emit('search', this.criteria)
         }
     }
 }

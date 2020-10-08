@@ -4,7 +4,7 @@ import App from "./Root.vue"
 import store from "./store/store"
 import router from "./router/router"
 import VueKeyCloak from "@dsb-norge/vue-keycloak-js"
-import {commission, admin, money, party, approval, employee, attorney} from "./http/axios"
+import {commission, admin, money, party, approval, employee, attorney, general_agreements} from "./http/axios"
 import "@mdi/font/css/materialdesignicons.css"
 import vuetify from "./plugins/vuetify"
 import party_install from "party/src/remote/remote"
@@ -21,6 +21,7 @@ Vue.prototype.$cargo_partyHost = party;
 Vue.prototype.$cargo_attorneyHost = attorney;
 Vue.prototype.$cargo_approvalHost = approval;
 Vue.prototype.$cargo_employeeHost = employee;
+Vue.prototype.$general_agreements = general_agreements;
 Vue.prototype.vuetify = vuetify;
 Vue.prototype.$commission_restHost = commission;
 

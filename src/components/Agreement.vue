@@ -13,7 +13,7 @@
                             <v-layout justify-self-end justify-end>
                                 <div v-if="!is_new">
                                     <v-btn
-                                        v-if="!is_canceled"
+                                        v-if="!is_cancelled"
                                         color="error"
                                         small
                                         @click="open_cancel_agreement_modal"
@@ -28,21 +28,22 @@
                         </v-layout>
                         <v-layout column>
                             <v-text-field
-                                v-if="is_new"
+                                v-if="is_new && is_general"
                                 :rules="[rules.required]"
                                 outlined
                                 :readonly="readonly"
                                 label="Номер документа*"
                                 v-model="agreement.number"/>
                             <holder-input
+                                v-if="is_general"
                                 :only_active="false"
                                 required
                                 :readonly="!is_new"
-                                v-model="agreement.holderId"
+                                v-model="agreement.partyId"
                                 label="Страхователь*"
                             />
                             <dictionary-selection
-                                :class="readonly || agreement.kindOfInsuranceList.length > 1 ? 'pb-3' : ''"
+                                :class="readonly || (agreement.kindOfInsurances && agreement.kindOfInsurances.length) > 1 ? 'pb-3' : ''"
                                 :can_manage="false"
                                 :rules="[rules.not_empty_array]"
                                 :readonly="!is_new"
@@ -51,14 +52,14 @@
                                 :menu-props-bottom="false"
                                 multiple
                                 multipleLabel="Виды страхования"
-                                v-model="agreement.kindOfInsuranceList"
+                                v-model="agreement.kindOfInsurances"
                             />
                             <date-input
                                 :rules="[rules.required]"
                                 :readonly="readonly"
                                 label="Дата заключения*"
                                 :max="agreement.since"
-                                v-model="agreement.signed"
+                                v-model="agreement.applied"
                             />
                         </v-layout>
                         <v-layout mb-2>
@@ -70,7 +71,7 @@
                                     :rules="[rules.required]"
                                     :readonly="readonly"
                                     label="Начало*"
-                                    :min="agreement.signed"
+                                    :min="agreement.applied"
                                     :max="agreement.till"
                                     v-model="agreement.since"/>
                             </v-flex>
@@ -87,16 +88,16 @@
                             <v-checkbox
                                 :readonly="readonly"
                                 @change="check_auto_renew"
-                                v-model="agreement.autoRenew"
+                                v-model="agreement.autoProlongation"
                                 label="Автоматическая пролонгация"/>
                             <v-text-field
-                                :disabled="!readonly && !agreement.autoRenew"
-                                :rules="agreement.autoRenew ? [rules.required, rules.non_negative] : []"
+                                :disabled="!readonly && !agreement.autoProlongation"
+                                :rules="agreement.autoProlongation ? [rules.required, rules.non_negative] : []"
                                 outlined
                                 type="number"
                                 :readonly="readonly"
                                 label="На сколько дней продлевать"
-                                v-model="agreement.renewDays"
+                                v-model="agreement.prolongationDays"
                             />
                         </v-layout>
                         <template v-if="!is_new">
@@ -150,6 +151,7 @@
                                         <general-agreements-table
                                             :is_general="false"
                                             :general_agreements="additional_agreements"
+                                            @delete_agreement="delete_agreement"
                                         />
                                     </v-expansion-panel-content>
                                 </v-expansion-panel>
@@ -160,7 +162,7 @@
 
             </v-card>
         </v-flex>
-        <template v-if="!agreement.canceled">
+        <template v-if="!agreement.cancelled">
             <v-snackbar
                 color="primary"
                 :value="snackbar_creating"
@@ -193,7 +195,7 @@
             <v-snackbar
                 color="primary"
                 :value="snackbar_editing"
-                v-if="snackbar_editing"
+                v-if="snackbar_editing && !is_cancelled"
                 :timeout="-1"
             >
                 Редактировать текущий договор
@@ -228,7 +230,7 @@
                     <v-btn
                         small
                         dark
-                        @click="save"
+                        @click="update"
                         :disabled="!form_valid"
                         color="green"
                         class="snackbar-btn ml-1"
@@ -273,7 +275,7 @@
 <script>
 import DictionarySelection from "../components/basic/DictionarySelection";
 import LoadingDialog from "../components/basic/LoadingDialog";
-import {route_names} from "../utils/consts";
+import {route_names, kinds_of_insurance} from "../utils/consts";
 import {load_parties_detail} from "../utils/load_parties_detail";
 import DateInput from "../components/basic/DateInput";
 import {format_date} from "../utils/date_util";
@@ -299,8 +301,8 @@ export default {
     data() {
         return {
             form_valid: true,
-            additional_agreements:[{id: 2, number: 222, since: '2020-04-05', till: '2020-04-05', signed: '2020-04-05', canceled: null, autoRenew: false}],
-            agreement: {kindOfInsuranceList: []},
+            additional_agreements:[],
+            agreement: {kindOfInsurances: []},
             copy_agreement: null,
             readonly: true,
             scan_file: null,
@@ -314,6 +316,7 @@ export default {
             ],
             rules: rules,
             kinds: Kinds,
+            kinds_of_insurance: kinds_of_insurance,
             snackbar_editing: false,
             snackbar_saving: false,
             snackbar_creating: false,
@@ -328,8 +331,8 @@ export default {
         is_new() {
             return !this.agreement.id;
         },
-        is_canceled() {
-            return this.agreement.canceled;
+        is_cancelled() {
+            return this.agreement.cancelled;
         },
 
         is_creating_agreement() {
@@ -365,13 +368,15 @@ export default {
             if (this.$route.name === route_names.ADDITIONAL_AGREEMENT_DETAIL || this.$route.name === route_names.ADDITIONAL_AGREEMENT_CREATE) {
                 return false
             }
+            return false
         },
+        get_gen_agreem_id() {
+            return this.$store.getters["cargo/get_current_general_agreement_id"]
+        }
     },
     mounted() {
-        if (this.is_general) {
-            if (this.$route.params.id) {
-                this.get_agreement(this.$route.params.id);
-            }
+        if (this.$route.params.id) {
+            this.get_agreement(this.$route.params.id);
         }
         this.route_handler(this.$route)
     },
@@ -390,16 +395,19 @@ export default {
     },
     methods: {
         open_cancel_agreement_modal() {
-              this.cancel_agreement_modal = true
+            this.cancel_agreement_modal = true
         },
         cancel_agreement() {
-            this.$cargo_adminHost.get(`/generalAgreement/cancel/${this.agreement.id}`)
+            const url = this.is_general
+                ? `/cancel/${this.$route.params.id}`
+                : `/additionalAgreement/cancel/${this.$route.params.id}`
+            this.$general_agreements.post(url, {})
                 .catch(error => {
-                    this.error_handler(error);
+                    this.$emit('show_error_alert', error);
                 })
                 .then(res => {
                     if (res) {
-                        this.agreement.canceled = true;
+                        this.agreement.cancelled = true;
                     }
                 }).finally(() => this.cancel_agreement_modal = false);
         },
@@ -508,53 +516,50 @@ export default {
                 agreements.forEach(agreement => ids.push(agreement.holderId));
             return ids;
         },
-        show_success_alert(message) {
-            this.alert_type = "success";
-            this.alert_message = message;
-            this.alert = true;
-        },
-        show_error_alert(message) {
-            this.alert_type = "error";
-            this.alert_message = message;
-            this.alert = true;
-        },
-        error_handler(error) {
-            if (error.response
-                && error.response.status === 400
-                && error.response.data)
-                this.show_error_alert(error.response.data.description);
-            else
-                this.show_error_alert("Непредвиденная ошибка");
-        },
         form_validate() {
             let validation = this.$refs.form.validate();
             if (!validation)
-                this.show_error_alert("Не все поля заполнены или заполненны некорректно");
+                this.$emit('show_error_alert', "Не все поля заполнены или заполненны некорректно");
             return validation;
+        },
+        update() {
+            if (!this.form_validate())
+                return;
+            let url = this.is_general
+                    ? '/'
+                    : '/additionalAgreement'
+            this.$general_agreements.put(url, this.agreement)
+                .then(resp => {
+                    this.readonly = true;
+                    this.snackbar_saving = false
+                    this.snackbar_editing = true
+                    this.$emit('show_success_alert', "Договор успешно обновлен")
+                })
+                .catch(error => {
+                    this.$emit('show_error_alert', error);
+                })
+                .finally(() => this.loading_dialog = false);
         },
         save() {
             if (!this.form_validate())
                 return;
             this.show_loading_dialog();
-            const method = this.agreement.id ? 'put' : 'post'
-            this.$cargo_adminHost[method]("/generalAgreement/", this.agreement)
-                .then(response => response.data)
-                .then(data => {
-                    this.select(data);
+            let url = this.is_general
+                ? `/create`
+                : `agreement/${this.get_gen_agreem_id}/additionalAgreement`
+            this.$general_agreements.post(url, this.agreement)
+                .then(response => {
+                    this.$router.back()
+                    this.select(response.data);
                     this.readonly = true;
-                    this.show_success_alert("Генеральный договор успешно сохранен");
-                    this.back_to_list()
+                    this.$emit('show_success_alert', "Договор успешно создан")
                 })
                 .catch(error => {
-                    this.error_handler(error);
+                    this.$emit('show_error_alert', error);
                 })
                 .finally(() => this.loading_dialog = false);
-            if (!this.agreement.id) {
-                this.$router.back()
-            }
         },
         select(id) {
-            this.resetScanFileProps();
             this.$router.push({
                 name: route_names.GENERAL_AGREEMENT_DETAIL,
                 params: {
@@ -564,16 +569,23 @@ export default {
         },
         async get_agreement(id) {
             this.show_loading_dialog("Загрузка");
-            this.$cargo_adminHost.get("/generalAgreement/" + id)
+            const url = this.is_general ? `/getById/${id}` : `/additionalAgreement/${id}`
+            this.$general_agreements.get(url)
                 .then(response => response.data)
                 .then(data => {
                     this.agreement = data;
+                    this.agreement.kindOfInsurances = this.agreement.kindOfInsurances.map(kind => {
+                        return {...kind, name:kinds_of_insurance[kind.code]}
+                    })
                     this.set_last_scan_file_name(id);
                     this.readonly = true;
-                    this.$store.commit('cargo/set_current_general_agreement', data)
+                    if (this.is_general) {
+                        this.additional_agreements = data.additionalAgreements
+                        this.$store.commit('cargo/set_current_general_agreement', data);
+                    }
                 })
                 .catch(error => {
-                    this.error_handler(error);
+                    this.$emit('show_error_alert', error);
                 })
                 .finally(() => this.loading_dialog = false);
         },
@@ -583,11 +595,6 @@ export default {
             this.snackbar_saving = true
         },
         cancel_editing() {
-            // if (this.cancel_redirect_params)
-            //     this.cancel_redirect();
-            // else
-            //     this.back_to_list();
-            // this.readonly = true;
             this.readonly = true
             this.get_agreement(this.$route.params.id).then(() => {
                 this.snackbar_editing = true
@@ -601,10 +608,6 @@ export default {
             });
         },
         back_to_list() {
-            //
-            // this.$router.push({
-            //     name: route_names.GENERAL_AGREEMENT,
-            // });
             this.$router.back()
         },
 
@@ -631,15 +634,21 @@ export default {
                 this.snackbar_saving = false
                 this.snackbar_editing = false
                 this.agreement = this.agreement = {
-                    holderId: this.holder_id,
-                    kindOfInsuranceList: []
+                    partyId: this.partyId,
+                    kindOfInsurances: []
                 };
                 this.reset_input_form()
+                console.log('create')
             }
             if (route.name === route_names.ADDITIONAL_AGREEMENT_DETAIL ||  route.name === route_names.GENERAL_AGREEMENT_DETAIL) {
                 this.snackbar_saving = false
+                this.snackbar_creating = false
+                console.log('detail')
                 this.snackbar_editing = true
             }
+        },
+        delete_agreement(id) {
+            this.additional_agreements = this.additional_agreements.filter(agr => agr.id !== id)
         },
         format_date
     },

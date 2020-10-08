@@ -27,7 +27,7 @@
                                                 clearable
                                                 hide-details
                                                 :readonly="false"
-                                                v-model="filter.holderId"
+                                                v-model="filter.partyId"
                                                 @input="search_by_holder"
                                                 label="Поиск по страхователю"
                                             />
@@ -81,6 +81,7 @@
                                     :general_agreements="general_agreements_with_status"
                                     :alert="search_alert"
                                     @select="resetScanFileProps"
+                                    @delete_agreement="delete_agreement"
                                 />
                             </v-card-text>
                         </v-card>
@@ -89,12 +90,14 @@
             </v-window-item>
             <v-window-item :value="2">
                 <agreement
-
+                    @show_error_alert="show_error_alert"
+                    @show_success_alert="show_success_alert"
                 />
             </v-window-item>
             <v-window-item :value="3">
                 <agreement
-
+                    @show_error_alert="show_error_alert"
+                    @show_success_alert="show_success_alert"
                 />
             </v-window-item>
         </v-window>
@@ -156,7 +159,7 @@
             class="dial"
             :top="true"
             v-if="(is_showing_general_agreement && !is_creating_general_agreement)
-            && ($store.getters['cargo/get_current_general_agreement'] && !$store.getters['cargo/get_current_general_agreement'].canceled)"
+            && ($store.getters['cargo/get_current_general_agreement'] &&  !$store.getters['cargo/get_current_general_agreement'].cancelled)"
             right
             fixed
         >
@@ -183,6 +186,7 @@
         <filter-dialog
             :value="filter_dialog_visible"
             @hide_filter_dialog="filter_dialog_visible = false"
+            @search="search_by_criteria"
         />
         <LoadingDialog
             :loading-dialog="loading_dialog"
@@ -211,8 +215,6 @@ export default {
         HolderInput,
         GeneralAgreementsTable,
         LoadingDialog,
-        DateInput,
-        DictionarySelection,
         Agreement,
         FilterDialog
     },
@@ -234,18 +236,13 @@ export default {
             loading_dialog_value: 0,
             headers: [
                 {text: "Номер", value: "number", sortable: false},
-                {text: "Страхователь", value: "holderId", sortable: false},
+                {text: "Страхователь", value: "partyId", sortable: false},
                 {text: "Дата заключения", value: "signed", sortable: false},
                 {text: "Дата начала/окончания действия", value: "sinceTill", sortable: false},
                 {text: "", value: "actions", align: "right", sortable: false},
             ],
             rules: rules,
             kinds: Kinds,
-            search_names: search_names,
-            search_type: search_names.holder,
-            search_since: null,
-            search_till: null,
-            search_kind: null,
         }
     },
     computed: {
@@ -278,9 +275,6 @@ export default {
         general_agreement_status(newVal) {
             this.filter_general_agreements_by_status(newVal);
         },
-        filter_dialog_visible() {
-            console.log(this.filter_dialog_visible)
-        }
     },
     props: {
         holder_id: {
@@ -306,9 +300,9 @@ export default {
                 this.search_alert = false;
             }, 3000);
         },
-        search_by_holder() {
+        get_all_agreements() {
             this.loading = true;
-            this.$cargo_adminHost.post("/generalAgreement/find", this.filter)
+            this.$general_agreements.get("/getAll")
                 .then(response => {
                     this.general_agreements = response.data;
                     this.filter_general_agreements_by_status(this.general_agreement_status);
@@ -318,14 +312,46 @@ export default {
                     console.log(this.general_agreements)
                 })
                 .catch(error => {
-                    this.error_handler(error);
+                    this.show_error_alert(error)
+                })
+                .finally(() => this.loading = false);
+        },
+        search_by_holder() {
+            this.loading = true;
+            this.$general_agreements.get(`/getByPartyId/${this.filter.partyId}`)
+                .then(response => {
+                    this.filter_dialog_visible = false
+                    this.general_agreements = response.data;
+                    this.filter_general_agreements_by_status(this.general_agreement_status);
+                    if (!this.general_agreements.length)
+                        this.show_alert();
+                    load_parties_detail(this.get_holder_ids(this.general_agreements), this.$store, this.$cargo_partyHost);
+                })
+                .catch(error => {
+                    this.show_error_alert(error)
+                })
+                .finally(() => this.loading = false);
+        },
+        search_by_criteria(criteria) {
+            this.loading = true;
+            this.$general_agreements.post(`/agreement/search`, criteria)
+                .then(response => {
+                    this.filter_dialog_visible = false
+                    this.general_agreements = response.data;
+                    this.filter_general_agreements_by_status(this.general_agreement_status);
+                    if (!this.general_agreements.length)
+                        this.show_alert();
+                    load_parties_detail(this.get_holder_ids(this.general_agreements), this.$store, this.$cargo_partyHost);
+                })
+                .catch(error => {
+                    this.show_error_alert(error)
                 })
                 .finally(() => this.loading = false);
         },
         get_holder_ids(general_agreements) {
             let ids = [];
             if (general_agreements)
-                general_agreements.forEach(agreement => ids.push(agreement.holderId));
+                general_agreements.forEach(agreement => ids.push(agreement.partyId));
             return ids;
         },
         show_success_alert(message) {
@@ -380,17 +406,13 @@ export default {
             });
         },
         back_to_list() {
-            //
-            // this.$router.push({
-            //     name: route_names.GENERAL_AGREEMENT,
-            // });
             this.$router.back()
         },
         route_handler(route) {
             switch (route.name) {
                 case route_names.GENERAL_AGREEMENT:
                     this.step = 1;
-                    this.search_by_holder();
+                    this.get_all_agreements()
                     break
                 case route_names.GENERAL_AGREEMENT_DETAIL :
                     this.step = 2
@@ -418,12 +440,16 @@ export default {
         filter_general_agreements_by_status(status) {
             switch (status) {
                 case 'CANCELED_STATUS':
-                    this.general_agreements_with_status = this.general_agreements.filter(ga => ga.canceled);
+                    this.general_agreements_with_status = this.general_agreements.filter(ga => ga.cancelled);
                     break;
                 case 'ACTIVE_STATUS':
-                    this.general_agreements_with_status = this.general_agreements.filter(ga => !ga.canceled);
+                    this.general_agreements_with_status = this.general_agreements.filter(ga => !ga.cancelled);
                     break;
             }
+        },
+        delete_agreement(id) {
+            this.general_agreements = this.general_agreements.filter(agr => agr.id !== id)
+            this.filter_general_agreements_by_status(this.general_agreement_status)
         },
         format_date
     },

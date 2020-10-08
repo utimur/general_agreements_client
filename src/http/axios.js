@@ -34,6 +34,11 @@ let employee = axios.create({
     baseURL: "http://employee.skpari.local/employeeclient/"
 });
 
+let general_agreements = axios.create({
+    baseURL: "http://romanova-mn:54321/" + "general_agreements/"
+});
+
+
 let auth_interceptor = (config) => {
     config.headers.Authorization = `Bearer ${Vue.prototype.$keycloak.token}`;
     return config;
@@ -55,4 +60,4 @@ money.interceptors.response.use(null, error_handle);
 commission.interceptors.response.use(null, error_handle);
 attorney.interceptors.response.use(null, error_handle);
 
-export {commission, attorney, money, admin, approval, employee, party, auth_interceptor, on_auth_error, error_handle}
+export {commission, attorney, money, admin, approval, employee, party, general_agreements, auth_interceptor, on_auth_error, error_handle}

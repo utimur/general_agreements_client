@@ -18,8 +18,8 @@
                         {{item.number}}
                     </span>
                     </td>
-                    <td v-if="!hide_holder_td">{{ get_holder_name(item.holderId) }}</td>
-                    <td>{{ format_date(item.signed)}}</td>
+                    <td v-if="!hide_holder_td">{{ get_holder_name(item.partyId) }}</td>
+                    <td>{{ format_date(item.applied)}}</td>
                     <td>
                         {{ format_date(item.since)}} <br/> {{format_date(item.till)}}
                     </td>
@@ -166,9 +166,13 @@
                 return "";
             },
             delete_agreement() {
-                this.$cargo_adminHost.delete('url',)
+                const url = this.is_general
+                    ? `${this.current_agreement.id}`
+                    : `additionalAgreement/${this.current_agreement.id}`
+                this.$general_agreements.delete(url)
                     .then(() => {
-                        console.log('deleted')
+                        this.$emit('delete_agreement', this.current_agreement.id)
+                        this.delete_modal = false
                     }).catch((e) => console.log(e))
             },
             select(id) {
